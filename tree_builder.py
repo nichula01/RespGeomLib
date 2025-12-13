@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pyvista as pv
@@ -37,13 +37,16 @@ class SegmentSpec:
     parent_port_index : Optional[int]
         Index of the parent segment's port where this segment attaches.
         Ignored for the root.
+    meta : Optional[dict]
+        Optional metadata for downstream use (e.g., labels, region, generation).
     """
 
     id: str
     kind: str
-    params: Dict[str, float]
+    params: Dict[str, Any]
     parent_id: Optional[str]
     parent_port_index: Optional[int]
+    meta: Optional[Dict[str, Any]] = None
 
 
 # Expected YAML format:
@@ -299,10 +302,11 @@ def load_specs_from_yaml(path: str) -> List[SegmentSpec]:
 
     The YAML file should contain a top-level list of mappings with keys:
       - id: str
-      - kind: str ("pipe", "y2", or "y3")
+      - kind: str ("pipe", "y2", "y3", etc.)
       - params: mapping of parameter names to values
       - parent_id: str or null
       - parent_port_index: int or null
+      - meta: optional mapping for metadata (labels, regions, generation, etc.)
     """
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
@@ -322,11 +326,14 @@ def load_specs_from_yaml(path: str) -> List[SegmentSpec]:
         params = item.get("params", {}) or {}
         parent_id = item.get("parent_id", None)
         parent_port_index = item.get("parent_port_index", None)
+        meta = item.get("meta", None)
 
         if seg_id is None or kind is None:
             raise ValueError(f"Segment entry missing 'id' or 'kind': {item!r}")
         if not isinstance(params, dict):
             raise ValueError(f"'params' for segment {seg_id!r} must be a mapping")
+        if meta is not None and not isinstance(meta, dict):
+            raise ValueError(f"'meta' for segment {seg_id!r} must be a mapping if provided")
 
         specs.append(
             SegmentSpec(
@@ -335,6 +342,7 @@ def load_specs_from_yaml(path: str) -> List[SegmentSpec]:
                 params=dict(params),
                 parent_id=parent_id,
                 parent_port_index=parent_port_index,
+                meta=meta,
             )
         )
 
