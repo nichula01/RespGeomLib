@@ -12,6 +12,8 @@ from segments import (
     Port,
     SegmentGeom,
     build_pipe_segment,
+    build_pipe_stenosis_segment,
+    build_pipe_dilation_segment,
     build_y2_segment,
     build_y3_segment,
 )
@@ -27,7 +29,7 @@ class SegmentSpec:
     id : str
         Unique identifier for this segment.
     kind : str
-        One of {"pipe", "y2", "y3"}.
+        One of {"pipe", "pipe_stenosis", "pipe_dilation", "y2", "y3"}.
     params : dict
         Keyword arguments to pass to the corresponding build_*_segment function.
     parent_id : Optional[str]
@@ -157,6 +159,10 @@ def build_segment_geom(spec: SegmentSpec) -> SegmentGeom:
     kind = spec.kind.lower()
     if kind == "pipe":
         return build_pipe_segment(**spec.params)
+    elif kind == "pipe_stenosis":
+        return build_pipe_stenosis_segment(**spec.params)
+    elif kind == "pipe_dilation":
+        return build_pipe_dilation_segment(**spec.params)
     elif kind == "y2":
         return build_y2_segment(**spec.params)
     elif kind == "y3":
@@ -430,7 +436,7 @@ def make_example_specs() -> List[SegmentSpec]:
 def main():
     # Path to a YAML file describing the airway tree.
     # You can change this to point to any other tree specification.
-    yaml_path = "trees/example_tree.yaml"
+    yaml_path = "trees/stenosis_test.yaml"
 
     specs = load_specs_from_yaml(yaml_path)
     if not specs:
