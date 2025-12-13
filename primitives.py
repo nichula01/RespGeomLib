@@ -133,6 +133,6 @@ if __name__ == "__main__":
     if pv is not None:
         mesh = cylinder_polydata(length=10.0, d_in=4.0, d_out=2.0, n_theta=16, n_z=8, cap_ends=True)
         print("PyVista mesh points:", mesh.n_points)
-        print("PyVista mesh faces:", mesh.n_faces)
+        print("PyVista mesh cells:", mesh.n_cells)
     else:
         print("PyVista not available; skipping PolyData test.")
