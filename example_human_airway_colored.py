@@ -52,7 +52,7 @@ def color_for_segment(
 
 
 def main():
-    yaml_path = "trees/human_central_v2_weibel.yaml"
+    yaml_path = "trees/human_central_v2_copd_moderate.yaml"
 
     specs = load_specs_from_yaml(yaml_path)
     root_origin = np.array([0.0, 0.0, 0.0])

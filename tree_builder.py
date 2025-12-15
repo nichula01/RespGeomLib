@@ -444,7 +444,7 @@ def make_example_specs() -> List[SegmentSpec]:
 def main():
     # Path to a YAML file describing the airway tree.
     # You can change this to point to any other tree specification.
-    yaml_path = "trees/stenosis_test.yaml"
+    yaml_path = "trees/human_central_v2_weibel.yaml"
 
     specs = load_specs_from_yaml(yaml_path)
     if not specs:

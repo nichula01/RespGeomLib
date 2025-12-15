@@ -6,7 +6,7 @@ No boolean operations; blending comes from min of tube distance fields.
 
 from __future__ import annotations
 
-from typing import Tuple
+from typing import List, Tuple
 
 import numpy as np
 
@@ -79,6 +79,34 @@ def _approx_distance_to_polyline(
     return np.sqrt(dist2)
 
 
+def _tip_and_direction(points: np.ndarray, fallback_dir: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    tip = np.asarray(points[-1], dtype=float)
+    if points.shape[0] >= 2:
+        direction = points[-1] - points[-2]
+    else:
+        direction = np.asarray(fallback_dir, dtype=float)
+    norm = np.linalg.norm(direction)
+    if norm < 1e-12:
+        direction = np.asarray(fallback_dir, dtype=float)
+        norm = np.linalg.norm(direction)
+    if norm < 1e-12:
+        raise ValueError("Degenerate branch direction; cannot determine clipping plane")
+    return tip, direction / norm
+
+
+def _clip_surface_open_ends(surface, planes: List[Tuple[np.ndarray, np.ndarray]]):
+    clipped = surface
+    for origin, normal in planes:
+        n = np.asarray(normal, dtype=float)
+        n_norm = np.linalg.norm(n)
+        if n_norm < 1e-12:
+            continue
+        n /= n_norm
+        o = np.asarray(origin, dtype=float)
+        clipped = clipped.clip(normal=n, origin=o, invert=True)
+    return clipped
+
+
 def make_three_way_y_implicit_local(
     length_trunk: float,
     length_child1: float,
@@ -98,6 +126,7 @@ def make_three_way_y_implicit_local(
     n_s_child: int = 40,
     blend_length: float = 0.0,
     grid_resolution_per_radius: float = 3.0,
+    open_ends: bool = True,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
     Create a smooth three-way Y (trifurcation) in local coordinates
@@ -111,6 +140,7 @@ def make_three_way_y_implicit_local(
     The implicit field is:
         F(x) = min_i (dist_to_branch_i(x) - r_i),
     where i runs over trunk + 3 children, and we extract the F=0 iso-surface.
+    Set open_ends=False to keep rounded caps instead of planar tips.
     """
     if pv is None:
         raise RuntimeError("pyvista is required for implicit 3-way Y junctions")
@@ -223,6 +253,17 @@ def make_three_way_y_implicit_local(
 
     surface = surface.triangulate().clean()
 
+    if open_ends:
+        planes = [
+            _tip_and_direction(pts_trunk, trunk_dir),
+            _tip_and_direction(pts_child1, d1),
+            _tip_and_direction(pts_child2, d2),
+            _tip_and_direction(pts_child3, d3),
+        ]
+        surface = _clip_surface_open_ends(surface, planes)
+
+    surface = surface.triangulate().clean()
+
     pts_out = surface.points
     faces_flat = surface.faces
     if faces_flat.size == 0:
@@ -251,6 +292,7 @@ def three_way_y_implicit_polydata(
     n_s_child: int = 40,
     blend_length: float = 0.0,
     grid_resolution_per_radius: float = 3.0,
+    open_ends: bool = True,
 ):
     """
     Convenience wrapper: return a pyvista.PolyData for the implicit 3-way Y junction.
@@ -277,6 +319,7 @@ def three_way_y_implicit_polydata(
         n_s_child=n_s_child,
         blend_length=blend_length,
         grid_resolution_per_radius=grid_resolution_per_radius,
+        open_ends=open_ends,
     )
     faces_flat = np.hstack(
         [np.full((faces.shape[0], 1), 3, dtype=int), faces]
