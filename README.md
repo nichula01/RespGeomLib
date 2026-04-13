@@ -41,7 +41,7 @@ The goal is to make airway geometry generation more useful for:
 ## Pipeline
 
 <div align="center">
-  <img src="assets/pipeline-overview.png" alt="RespGeomLib pipeline" width="100%">
+  <img src="pipeline-overview.png" alt="RespGeomLib pipeline" width="100%">
 </div>
 
 **Pipeline summary:** a compact YAML specification defines airway primitives and parent–child attachments through ports. Segments are placed via local-to-world frame transforms, junctions are generated using an implicit field, and the final surface is extracted and cleaned into an analysis-ready airway mesh.
