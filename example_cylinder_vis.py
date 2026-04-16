@@ -3,7 +3,7 @@ import pyvista as pv
 from primitives import cylinder_polydata
 
 
-def main():
+def main(): 
     try:
         mesh = cylinder_polydata(length=10.0, d_in=4.0, d_out=2.0, n_theta=32, n_z=16, cap_ends=True)
     except RuntimeError:
