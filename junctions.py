@@ -1,6 +1,6 @@
 """
 Two-way Y junctions built in local coordinates using PyVista's tube filter and lines_from_points.
-No boolean operations are used; three centerlines are tubed into a single Y-shaped surface.
+No boolean operations are used; three centerlines are tubed into a single Y-shaped surface .
 """
 
 from __future__ import annotations
